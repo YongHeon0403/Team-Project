@@ -30,5 +30,6 @@ public class UserInfo extends BaseTimeEntity {
     @Column(nullable = false, length = 100)
     private String region;
 
+    // 계정 활성화 여부 기본 값 true, 삭제 시 false
     private boolean isActive = true;
 }

@@ -4,12 +4,12 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.zerock.server.domain.BaseTimeEntity;
 
-@Entity
-@Table(name = "tb_admin_account")
 @Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
+@Table(name = "tb_admin_account")
 public class AdminAccount extends BaseTimeEntity {
 
     @Id

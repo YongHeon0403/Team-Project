@@ -27,7 +27,7 @@ public class BoardReaction {
     private BoardPost boardPost;
 
     @Builder.Default
-    private boolean isLiked = true;
+    private boolean isLiked = false;
 
     @Column(name = "created_at", updatable = false)
     private java.sql.Timestamp createdAt;
