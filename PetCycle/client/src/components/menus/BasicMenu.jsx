@@ -13,7 +13,7 @@ const BasicMenu = () => {
                         <Link className="nav-link fs-4 fw-bold" to="/">Main</Link>
                     </li>
                     <li className="nav-item">
-                        <Link className="nav-link fs-4 fw-bold" to="/about">About</Link>
+                        <Link className="nav-link fs-4 fw-bold" to="/board/list">게시판</Link>
                     </li>
                     {loginState.email && (
                         <>
