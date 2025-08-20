@@ -1,17 +1,13 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap CSS 임포트
-import 'bootstrap/dist/js/bootstrap.bundle.min.js'; 
-import App from './App.jsx'
-import { Provider } from 'react-redux'
-import store from './store.jsx'
-import { RouterProvider } from 'react-router-dom'
-import root from './router/root.jsx'
+import { createRoot } from "react-dom/client";
+import { Provider } from "react-redux";
+import store from "./store.jsx";
+import { RouterProvider } from "react-router-dom";
+import root from "./router/root.jsx";
+import React from "react";
+import "./index.css";
 
-createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById("root")).render(
   <Provider store={store}>
-    <RouterProvider router={root}>
-
-    </RouterProvider>
+    <RouterProvider router={root}></RouterProvider>
   </Provider>
-)
+);

@@ -1,5 +1,6 @@
 // src/router/UserRouter.jsx
 import { lazy, Suspense } from "react";
+import React from "react";
 
 const Loading = <div>Loading...</div>;
 const Login = lazy(() => import("../pages/user/LoginPage"));

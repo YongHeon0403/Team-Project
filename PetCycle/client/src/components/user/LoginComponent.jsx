@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { loginPostAsync } from "../../slices/LoginSlice";
 import { useNavigate } from "react-router-dom";
@@ -37,10 +37,7 @@ const LoginComponent = () => {
         setMessage("로그인 실패: " + result.error);
       } else {
         setMessage("로그인 성공!");
-
-        // ✅ 토큰만 저장하는 대신, user 전체 정보를 쿠키에 저장
-        setCookie("user", JSON.stringify(result), 1); // 1일
-
+        setCookie("user", JSON.stringify(result), 1);
         moveToPath("/");
       }
     } catch (error) {
@@ -53,58 +50,62 @@ const LoginComponent = () => {
   };
 
   return (
-    <div className="card shadow p-4 w-100" style={{ maxWidth: "400px" }}>
-      <div className="card-body">
-        <h3 className="card-title text-center mb-4 text-primary">로그인</h3>
+    <div className="max-w-sm w-full mx-auto my-8 p-6 bg-white rounded-lg shadow-md">
+      <h3 className="text-center mb-6 text-blue-600 text-2xl font-bold">
+        로그인
+      </h3>
 
-        <div className="mb-3">
-          <label htmlFor="email" className="form-label">
-            이메일
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="email"
-            name="email"
-            value={loginParam.email}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="mb-3">
-          <label htmlFor="password" className="form-label">
-            비밀번호
-          </label>
-          <input
-            type="password"
-            className="form-control"
-            id="password"
-            name="password"
-            value={loginParam.password}
-            onChange={handleChange}
-          />
-        </div>
-
-        {message && (
-          <div
-            className={`mb-3 text-center ${
-              message.startsWith("로그인 성공") ? "text-success" : "text-danger"
-            }`}
-          >
-            {message}
-          </div>
-        )}
-
-        <div className="d-grid">
-          <button
-            className="btn btn-primary"
-            onClick={handleClickLogin}
-            disabled={isLoading}
-          >
-            {isLoading ? "로그인 중..." : "로그인"}
-          </button>
-        </div>
+      <div className="mb-4">
+        <label htmlFor="email" className="block mb-1 font-medium">
+          이메일
+        </label>
+        <input
+          type="text"
+          id="email"
+          name="email"
+          value={loginParam.email}
+          onChange={handleChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
       </div>
+
+      <div className="mb-4">
+        <label htmlFor="password" className="block mb-1 font-medium">
+          비밀번호
+        </label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          value={loginParam.password}
+          onChange={handleChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+      </div>
+
+      {message && (
+        <div
+          className={`mb-4 text-center font-medium ${
+            message.startsWith("로그인 성공")
+              ? "text-green-600"
+              : "text-red-600"
+          }`}
+        >
+          {message}
+        </div>
+      )}
+
+      <button
+        className={`w-full py-2 px-4 rounded text-white font-semibold ${
+          isLoading
+            ? "bg-blue-300 cursor-not-allowed"
+            : "bg-blue-600 hover:bg-blue-500"
+        }`}
+        onClick={handleClickLogin}
+        disabled={isLoading}
+      >
+        {isLoading ? "로그인 중..." : "로그인"}
+      </button>
     </div>
   );
 };

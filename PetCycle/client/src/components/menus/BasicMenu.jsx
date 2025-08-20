@@ -1,47 +1,71 @@
+import React from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 const BasicMenu = () => {
-    const loginState = useSelector(state => state.LoginSlice);
+  const loginState = useSelector((state) => state.LoginSlice);
 
-    return (
-        <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-            <div className="container-fluid">
-                {/* 왼쪽 메뉴 */}
-                <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li className="nav-item">
-                        <Link className="nav-link fs-4 fw-bold" to="/">Main</Link>
-                    </li>
-                    <li className="nav-item">
-                        <Link className="nav-link fs-4 fw-bold" to="/board/list">게시판</Link>
-                    </li>
-                    {loginState.email && (
-                        <>
-                            <li className="nav-item">
-                                <Link className="nav-link fs-4 fw-bold" to="/todo/">Todo</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link fs-4 fw-bold" to="/products/">Products</Link>
-                            </li>
-                        </>
-                    )}
-                </ul>
+  return (
+    <nav className="bg-blue-600 text-white">
+      <div className="container mx-auto flex justify-between items-center p-4">
+        {/* 왼쪽 메뉴 */}
+        <ul className="flex space-x-6">
+          <li>
+            <Link className="text-xl font-bold hover:text-blue-300" to="/">
+              Main
+            </Link>
+          </li>
+          <li>
+            <Link
+              className="text-xl font-bold hover:text-blue-300"
+              to="/board/list"
+            >
+              게시판
+            </Link>
+          </li>
+          {loginState.email && (
+            <>
+              <li>
+                <Link
+                  className="text-xl font-bold hover:text-blue-300"
+                  to="/todo/"
+                >
+                  Todo
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="text-xl font-bold hover:text-blue-300"
+                  to="/products/"
+                >
+                  Products
+                </Link>
+              </li>
+            </>
+          )}
+        </ul>
 
-                {/* 오른쪽 로그인/로그아웃 버튼 */}
-                <div className="d-flex">
-                    {!loginState.email ? (
-                        <Link className="btn btn-warning fw-medium" to="user/login">
-                            Login
-                        </Link>
-                    ) : (
-                        <Link className="btn btn-warning fw-medium" to="user/logout">
-                            Logout
-                        </Link>
-                    )}
-                </div>
-            </div>
-        </nav>
-    );
+        {/* 오른쪽 로그인/로그아웃 버튼 */}
+        <div>
+          {!loginState.email ? (
+            <Link
+              className="bg-yellow-400 text-black font-medium px-4 py-2 rounded hover:bg-yellow-300"
+              to="user/login"
+            >
+              Login
+            </Link>
+          ) : (
+            <Link
+              className="bg-yellow-400 text-black font-medium px-4 py-2 rounded hover:bg-yellow-300"
+              to="user/logout"
+            >
+              Logout
+            </Link>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
 };
 
 export default BasicMenu;
