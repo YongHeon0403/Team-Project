@@ -22,5 +22,6 @@ public class ProductTag {
     private String tagName;
 
     @OneToMany(mappedBy = "tag", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<ProductTagRelation> tagRelations = new HashSet<>();
 }

@@ -54,23 +54,29 @@ public class ProductInfo {
     private BigDecimal longitude;
 
     @Column
+    @Builder.Default
     private int viewCount = 0;
 
     @Column(length = 50)
+    @Builder.Default
     private String status = "SELLING";
 
     @Column
+    @Builder.Default
     private boolean isDeleted = false;
 
     // 상품-이미지 양방향
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<ProductImage> images = new HashSet<>();
 
     // 찜 양방향
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<ProductLike> likes = new HashSet<>();
 
     // 태그 조인 양방향
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<ProductTagRelation> tagRelations = new HashSet<>();
 }

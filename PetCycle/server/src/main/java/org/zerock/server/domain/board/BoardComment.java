@@ -2,6 +2,7 @@ package org.zerock.server.domain.board;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.zerock.server.domain.BaseTimeEntity;
 import org.zerock.server.domain.user.UserInfo;
 import java.util.HashSet;
 import java.util.Set;
@@ -11,7 +12,8 @@ import java.util.Set;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "tb_board_comment")
-public class BoardComment {
+@ToString(exclude = {"post", "user", "parentComment", "children"})  // 순환 참조 방지
+public class BoardComment extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long commentId;
@@ -37,11 +39,29 @@ public class BoardComment {
     private String content;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean isDeleted = false;
 
-    @Column(name = "created_at", updatable = false, insertable = false)
-    private java.sql.Timestamp createdAt;
+    @Column(nullable = false)
+    @Builder.Default
+    private int depth = 0; // 댓글의 깊이 (0: 최상위 댓글, 1: 1단계 대댓글, ...)
 
-    @Column(name = "updated_at", insertable = false)
-    private java.sql.Timestamp updatedAt;
+    public void changeContent(String content) {
+        this.content = content;
+    }
+
+    public void changeIsDeleted(boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
+    // 편의 메서드: 부모 댓글 설정
+    public void setParentComment(BoardComment parentComment) {
+        this.parentComment = parentComment;
+        if (parentComment != null) {
+            this.depth = parentComment.getDepth() + 1; // 부모 댓글의 깊이 + 1
+        } else {
+            this.depth = 0; // 부모가 없으면 최상위 댓글
+        }
+    }
+
 }

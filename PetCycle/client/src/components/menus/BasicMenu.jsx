@@ -50,14 +50,14 @@ const BasicMenu = () => {
           {!loginState.email ? (
             <Link
               className="bg-yellow-400 text-black font-medium px-4 py-2 rounded hover:bg-yellow-300"
-              to="user/login"
+              to="/user/login"
             >
               Login
             </Link>
           ) : (
             <Link
               className="bg-yellow-400 text-black font-medium px-4 py-2 rounded hover:bg-yellow-300"
-              to="user/logout"
+              to="/user/logout"
             >
               Logout
             </Link>

@@ -30,5 +30,6 @@ public class ChatMessage {
     private java.sql.Timestamp sentAt;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean isRead = false;
 }

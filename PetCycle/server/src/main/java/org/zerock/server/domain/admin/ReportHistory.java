@@ -36,6 +36,7 @@ public class ReportHistory {
     private String reportDetail;
 
     @Column(length = 50)
+    @Builder.Default
     private String reportStatus = "PENDING";
 
     @Column(nullable = false, updatable = false, insertable = false)

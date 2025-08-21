@@ -45,6 +45,7 @@ public class UserInfo {
     private String region;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean isActive = true;
 
     // 권한 추가 메서드
@@ -54,9 +55,11 @@ public class UserInfo {
 
     // 상품(판매자 기준) 양방향 관계
     @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<ProductInfo> products = new HashSet<>();
 
     // 찜한 상품 양방향 관계
     @OneToMany(mappedBy = "userInfo", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<ProductLike> likes = new HashSet<>();
 }

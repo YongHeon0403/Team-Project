@@ -32,7 +32,7 @@ public class APILoginSuccessHandler implements AuthenticationSuccessHandler {
         //getClaims() 로 현재 로그인한 사용자의 정보를 가져온다.(getClaims() 클릭해서 확인)
         Map<String, Object> claims = userInfoDTO.getClaims();
 
-        String accessToken = JWTUtil.generateToken(claims, 1); //10분
+        String accessToken = JWTUtil.generateToken(claims, 10); //10분
         String refreshToken = JWTUtil.generateToken(claims, 60*24);//24시간
 
         claims.put("accessToken", accessToken);  // 나중에 구현

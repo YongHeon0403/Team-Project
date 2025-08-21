@@ -2,6 +2,9 @@ package org.zerock.server.domain.board;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.sql.Timestamp;
 
 @Getter @Setter @Builder
 @AllArgsConstructor
@@ -15,7 +18,7 @@ public class BoardAttachment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
-    private BoardPost post;
+    private BoardPost boardPost;
 
     @Column(nullable = false, length = 255)
     private String fileUrl;
@@ -23,6 +26,8 @@ public class BoardAttachment {
     @Column(nullable = false, length = 50)
     private String fileType;
 
-    @Column(name = "uploaded_at", updatable = false, insertable = false)
-    private java.sql.Timestamp uploadedAt;
+    @UpdateTimestamp
+    @Column(name = "uploaded_at", updatable = false)
+    private Timestamp uploadedAt;
+
 }

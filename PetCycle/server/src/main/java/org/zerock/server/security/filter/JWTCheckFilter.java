@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -34,12 +35,13 @@ public class JWTCheckFilter extends OncePerRequestFilter {
         //4.요청에 credentials 포함 시 (쿠키, 인증 헤더)
 
 
+        String path = request.getRequestURI();
+        String method = request.getMethod(); // 요청 HTTP 메서드 가져오기
+
         //Preflight 요청은 체크하지 않음
         if(request.getMethod().equals("OPTIONS")){
             return true;
         }
-
-        String path = request.getRequestURI();
 
         log.info("check uri.........." + path);
 
@@ -51,6 +53,28 @@ public class JWTCheckFilter extends OncePerRequestFilter {
         if(path.startsWith("/api/user/")){
             return true;
         }
+
+        // 추가: 이미지 파일 뷰는 공개 경로로 스킵
+        if (method.equals("GET") && path.startsWith("/api/board/files/view/")) {
+            return true;
+        }
+
+        // 3. GET 요청
+        // CustomSecurityConfig에서 permitAll()로 설정된 경로와 일치해야 합니다.
+        if (method.equals(HttpMethod.GET.name())) {
+            if (path.equals("/api/board") || // GET /api/board (목록)
+                    path.equals("/api/board/list") || // GET /api/board/list (목록)
+                    path.matches("/api/board/\\d+") ||// GET /api/board/{postId} (단일 조회: /api/board/숫자)
+
+                    // 댓글 경로 추가
+                    path.matches("/api/comment/board/\\d+") ||
+                    path.matches("/api/comment/board/\\d+/count")
+            ) {
+                log.info("Skipping JWT check for public GET /api/board related path: " + path);
+                return true;
+            }
+        }
+
 
 
         return false;

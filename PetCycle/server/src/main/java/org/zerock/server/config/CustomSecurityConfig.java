@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -52,6 +53,31 @@ public class CustomSecurityConfig {
             //로그인 실패시 처리를 APILoginFailHandler 로 설정
             config.failureHandler(new APILoginFailHandler());
         });
+
+        // ** 중요한 변경: HTTP 요청에 대한 접근 권한 설정 **
+        http.authorizeHttpRequests(authorize -> authorize
+                // 인증, 인가가 필요없는 공개 경로 설정
+                // 1. 로그인, 회원가입 등 인증 관련 api는 항상 permitAll()
+                .requestMatchers("/api/auth/**").permitAll()
+                // 게시글 단일조회는 인증 없이 허용
+                // ** 순서가 중요, 더 구체적인 규칙을 먼저 정의
+                .requestMatchers(HttpMethod.GET, "/api/board/{postId}").permitAll()
+                // 게시글 목록 조회도 인증 없이 허용
+                .requestMatchers(HttpMethod.GET, "/api/board/list").permitAll()
+                // 루트 경로도 필요시 명시
+                .requestMatchers(HttpMethod.GET, "/api/board").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/board/files/view/**").permitAll()
+
+                // 댓글 관련 GET 요청도 인증 없이 허용
+                .requestMatchers(HttpMethod.GET, "/api/comment/board/{postId}").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/comment/board/{postId}/count").permitAll()
+                // 인증, 인가가 필요한 경로 설정
+                // 이 규칙은 permitAll()뒤에 와야함
+                // 위의 경로 제외한 모든 api/board/경로는 인증 필요
+                .requestMatchers("/api/board/**").authenticated()
+                // 그 외 모든 요청은 인증 필요
+                .anyRequest().authenticated()
+        );
 
 //        http.formLogin(config -> config.disable());
 

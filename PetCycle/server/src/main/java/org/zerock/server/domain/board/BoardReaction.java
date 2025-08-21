@@ -25,6 +25,7 @@ public class BoardReaction {
     private BoardPost post;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean isLiked = true;
 
     @Column(name = "created_at", updatable = false, insertable = false)

@@ -32,7 +32,7 @@ public class UserInfoRepositoryTests {
                 .email("user00@email.com")
                 .password(passwordEncoder.encode("1111"))
                 .nickname("USER00")
-                .phoneNumber("011-0000-0000")
+                .phoneNumber("000-0000-0000")
                 .region("Seoul")
                 .isActive(true)
                 .build();

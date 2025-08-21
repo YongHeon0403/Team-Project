@@ -89,7 +89,7 @@ public class UserInfoDTO extends User {
 
         dataMap.put("userId", userId);
         dataMap.put("email", email);
-        // dataMap.put("password", password); // 보안상 JWT 클레임에 비밀번호(해싱된 값이라도) 포함은 권장하지 않습니다.
+        dataMap.put("password", password); // 보안상 JWT 클레임에 비밀번호(해싱된 값이라도) 포함은 권장하지 않습니다.
         dataMap.put("nickname", nickname);
         dataMap.put("phoneNumber", phoneNumber);
         dataMap.put("region", region);

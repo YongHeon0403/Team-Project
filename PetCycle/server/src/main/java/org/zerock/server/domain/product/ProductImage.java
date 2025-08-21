@@ -25,6 +25,7 @@ public class ProductImage {
     private String imageUrl;
 
     @Column
+    @Builder.Default
     private boolean isThumbnail = false;
 
     @Column(name = "uploaded_at", updatable = false)
