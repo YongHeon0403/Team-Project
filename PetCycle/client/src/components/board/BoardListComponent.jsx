@@ -1,9 +1,11 @@
+// src/components/board/BoardListComponent.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { getPostList } from "../../api/board/PostApi";
 import useCustomMove from "../../hooks/useCustomMove";
 import PageComponent from "../common/PageComponent";
 import { useNavigate } from "react-router-dom";
 import { getCookie } from "../../util/CookieUtil";
+import { getCommentsCount } from "../../api/board/CommentApi"; // ⬅️ 추가
 
 const initState = {
   boardList: [],
@@ -24,14 +26,57 @@ const BoardListComponent = () => {
     useCustomMove();
   const [serverData, setServerData] = useState(initState);
 
+  // 게시글별 댓글 개수 저장: { [postId]: number }
+  const [commentCounts, setCommentCounts] = useState({});
+
   // 드롭다운 상태 및 ref
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  // 게시글 목록 로딩
   useEffect(() => {
-    getPostList({ page, size, type, keyword }).then((data) => {
-      setServerData({ ...data, boardList: data.dtoList });
-    });
+    let ignore = false; // 언마운트 방지용 플래그
+
+    const fetchData = async () => {
+      // dto 데이터 불러오기
+      try {
+        const data = await getPostList({ page, size, type, keyword });
+        if (ignore) return; // 언마운트 됐으면 무시
+
+        setServerData({ ...data, boardList: data.dtoList });
+
+        const list = data?.dtoList ?? [];
+        if (list.length === 0) {
+          setCommentCounts({});
+          return;
+        }
+
+        // 댓글 개수 병렬 요청
+        const tasks = list.map(async (item) => {
+          try {
+            const count = await getCommentsCount(item.postId);
+            return [item.postId, count];
+          } catch {
+            return [item.postId, 0];
+          }
+        });
+
+        const entries = await Promise.all(tasks);
+        if (ignore) return; // 언마운트 됐으면 무시
+
+        const map = {};
+        entries.forEach(([id, cnt]) => (map[id] = cnt));
+        setCommentCounts(map);
+      } catch (error) {
+        console.error("게시글 목록/댓글 불러오기 실패:", error);
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      ignore = true; // cleanup 시점
+    };
   }, [page, size, refresh, type, keyword]);
 
   const toggleDropdown = () => setDropdownOpen((prev) => !prev);
@@ -135,34 +180,50 @@ const BoardListComponent = () => {
 
       {/* 게시글 목록 */}
       <div className="flex flex-wrap justify-center p-3 gap-3">
-        {serverData.boardList.map((board) => (
-          <div
-            key={board.postId}
-            className="bg-white shadow-sm rounded p-2 w-full min-w-[400px] cursor-pointer hover:shadow-md"
-            onClick={() => moveToRead(board.postId)}
-          >
-            <div className="flex items-center">
-              <div className="font-bold text-lg p-2 mr-2">{board.postId}</div>
-              <div className="flex-grow p-2 text-lg font-semibold">
-                {board.title}
-                {board.categoryName && (
-                  <span className="ml-2 bg-blue-200 text-blue-800 text-sm px-2 py-1 rounded">
-                    {board.categoryName}
-                  </span>
-                )}
-              </div>
-              <div className="text-sm text-gray-600 p-2 text-center">
-                {board.nickname}
-              </div>
-              <div className="text-sm text-gray-500 p-2 text-end">
-                {board.createdAt ? board.createdAt.substring(0, 10) : ""}
-              </div>
-              <div className="text-sm text-blue-500 p-2 text-end">
-                조회: {board.viewCount}
+        {serverData.boardList.map((board) => {
+          const cmt = commentCounts[board.postId] ?? 0;
+          return (
+            <div
+              key={board.postId}
+              className="bg-white shadow-sm rounded p-2 w-full min-w-[400px] cursor-pointer hover:shadow-md"
+              onClick={() => moveToRead(board.postId)}
+            >
+              <div className="flex items-center">
+                <div className="font-bold text-lg p-2 mr-2">{board.postId}</div>
+
+                <div className="flex-grow p-2">
+                  <div className="flex items-center gap-2">
+                    <div className="text-lg font-semibold truncate">
+                      {board.title}
+                    </div>
+
+                    {/* 카테고리 배지 */}
+                    {board.categoryName && (
+                      <span className="bg-blue-200 text-blue-800 text-xs px-2 py-0.5 rounded">
+                        {board.categoryName}
+                      </span>
+                    )}
+
+                    {/* 💬 댓글 개수 배지 */}
+                    <span className="ml-1 bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded border border-gray-200">
+                      💬 {cmt}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="text-sm text-gray-600 p-2 text-center">
+                  {board.nickname}
+                </div>
+                <div className="text-sm text-gray-500 p-2 text-end w-28">
+                  {board.createdAt ? board.createdAt.substring(0, 10) : ""}
+                </div>
+                <div className="text-sm text-blue-500 p-2 text-end">
+                  조회: {board.viewCount}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <PageComponent serverData={serverData} movePage={moveToList} />

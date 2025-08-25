@@ -76,3 +76,5 @@ export const removeAttachment = async (postId, attachmentId) => {
   const res = await jwtAxios.delete(`${host}/files/${postId}/${attachmentId}`);
   return res.data;
 };
+
+// 최종 완료

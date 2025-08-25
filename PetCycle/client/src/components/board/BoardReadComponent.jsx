@@ -17,6 +17,18 @@ const initState = {
   updatedAt: null,
 };
 
+// 작성일/수정일 포맷 함수 (yyyy-MM-dd HH:mm)
+const formatDateTime = (dateTimeStr) => {
+  if (!dateTimeStr) return "";
+  const date = new Date(dateTimeStr);
+  const yyyy = date.getFullYear();
+  const MM = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  const hh = String(date.getHours()).padStart(2, "0");
+  const mm = String(date.getMinutes()).padStart(2, "0");
+  return `${yyyy}-${MM}-${dd} ${hh}:${mm}`;
+};
+
 const BoardReadComponent = ({ postId }) => {
   const [post, setPost] = useState(initState);
   const [modalImage, setModalImage] = useState(null);
@@ -59,9 +71,7 @@ const BoardReadComponent = ({ postId }) => {
           {/* 작성자/작성일/조회수 */}
           <div className="flex text-gray-500 text-sm mb-4">
             <div className="mr-4">✍ {post.nickname}</div>
-            <div className="mr-auto">
-              {post.createdAt ? post.createdAt.substring(0, 10) : ""}
-            </div>
+            <div className="mr-auto">{formatDateTime(post.createdAt)}</div>
             <div>👁 {post.viewCount}</div>
           </div>
 

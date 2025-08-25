@@ -25,6 +25,8 @@ const ListPage = () => {
 
           {/* 게시판 목록 */}
           <BoardListComponent />
+
+          
         </div>
       </div>
     </div>
