@@ -67,10 +67,11 @@ const useCustomLogin = () => {
     console.log("Exception--------------------");
     console.log(ex);
 
-    const errorMsg = ex.response.data.error; // 에러 메세지 저장
+    // ✅ 안전하게 읽기
+    const errorMsg = ex?.response?.data?.error || "UNKNOWN";
 
     //createSearchParams 실행되면 URLSearchParams 인스턴스 생성(error=... 형태의 인코딩된 문자열 반환)
-    const errorStr = createSearchParams({ error: errorMsg }).toString;
+    const qs = createSearchParams({ error: errorMsg }).toString();
 
     /********************************************************************************************************************************
      * URLSearchParams 와 useSearchParams 공통점 ? 둘다 쿼리 스트링을 처리한다 입니다.
@@ -87,13 +88,13 @@ const useCustomLogin = () => {
 
     if (errorMsg === "REQUIRE_LOGIN") {
       alert("로그인 해야만 합니다.");
-      navigate({ pathname: "/member/login", search: errorStr });
+      navigate({ pathname: "/user/login", search: `?${qs}` });
       return;
     }
 
     if (ex.response.data.error === "ERROR_ACCESSDENIED") {
       alert("해당 메뉴를 사용할 수 있는 권한이 없습니다.");
-      navigate({ pathname: "/member/login", search: errorStr });
+      navigate({ pathname: "/user/login", search: `?${qs}` });
       return;
     }
   };
