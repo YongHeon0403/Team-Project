@@ -15,6 +15,7 @@ public class BoardCommentDTO {
     private Long commentId;
     private Long postId;
     private Long parentId;
+    private Long userId;
     private int depth;
     private String nickname;
     private String content;
