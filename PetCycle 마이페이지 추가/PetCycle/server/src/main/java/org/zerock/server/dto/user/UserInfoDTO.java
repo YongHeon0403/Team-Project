@@ -26,6 +26,7 @@ public class UserInfoDTO extends User {
     private String phoneNumber;
     private String region;
     private boolean isActive;
+    private boolean social;
 
     private List<UserRole> roleNames = new ArrayList<>();
 
@@ -55,6 +56,7 @@ public class UserInfoDTO extends User {
         this.region = userInfo.getRegion();
         this.isActive = userInfo.isActive(); // UserInfo 엔티티의 isActive 필드와 연동
         this.roleNames = userInfo.getUserRoleList(); // Enum 리스트를 그대로 할당 (claims 시 String 변환)
+        this.social = userInfo.isSocial();
 
     }
 
@@ -64,7 +66,7 @@ public class UserInfoDTO extends User {
      */
     public UserInfoDTO(Long userId, String email, String password,
                        String nickname, String phoneNumber,
-                       String region, List<UserRole> roleNames, boolean isActive){
+                       String region, List<UserRole> roleNames, boolean isActive, boolean social){
         super(email, password, roleNames.stream().map(role ->
                 new SimpleGrantedAuthority("ROLE_" + role.name())).collect(Collectors.toList()) );
 
@@ -76,6 +78,7 @@ public class UserInfoDTO extends User {
         this.region = region;
         this.roleNames = roleNames;
         this.isActive = isActive;
+        this.social = social;
     }
 
 
@@ -94,6 +97,7 @@ public class UserInfoDTO extends User {
         dataMap.put("phoneNumber", phoneNumber);
         dataMap.put("region", region);
         dataMap.put("isActive", isActive);
+        dataMap.put("social", isSocial());
         // Enum 리스트를 String 이름 리스트로 변환하여 클레임에 추가합니다.
         dataMap.put("roleNames", roleNames.stream().map(Enum::name).collect(Collectors.toList()));
 

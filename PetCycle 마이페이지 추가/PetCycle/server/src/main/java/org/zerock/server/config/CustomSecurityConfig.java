@@ -56,6 +56,8 @@ public class CustomSecurityConfig {
 
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/user/refresh").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/user/kakao").permitAll()
+
 
                 .requestMatchers(HttpMethod.GET, "/api/product-categories").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/products/categories").permitAll()

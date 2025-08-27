@@ -21,18 +21,8 @@ public class UserInfo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    /**
-     * 권한 (Enum 기반)
-     * - ElementCollection은 별도 엔티티 없이 값 컬렉션을 저장(조인 테이블은 생김)
-     * - ORDINAL 대신 STRING으로 저장하여 안전(추후 enum 순서 변경에도 안전)
-     */
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(
-            name = "tb_user_roles",
-            joinColumns = @JoinColumn(name = "user_id")
-    )
-    @Column(name = "role_name", length = 50, nullable = false)
-    @Enumerated(EnumType.STRING)
+    // 권한부분 수정 (enum 사용, UserRole 테이블 삭제)
+    @ElementCollection
     @Builder.Default
     private List<UserRole> userRoleList = new ArrayList<>();
 
@@ -48,13 +38,34 @@ public class UserInfo {
     @Column(unique = true, nullable = false, length = 50)
     private String nickname;
 
+    @Builder.Default
     @Column(nullable = false, length = 100)
-    private String region;
+    private String region = "UNKNOWN";
+
+    // 소셜로그인 유무
+    private boolean social;
 
     // ✅ @Builder.Default 로 빌더 생성 시에도 기본값 유지
     @Builder.Default
     @Column(nullable = false)
     private boolean isActive = true;
+
+    // 권한 추가 메서드
+    public void addRole(UserRole userRole){
+        userRoleList.add(userRole);
+    }
+
+    public void changeNickname(String nickname){
+        this.nickname = nickname;
+    }
+
+    public void changePassword(String password){
+        this.password = password;
+    }
+
+    public void changeSocial(boolean social){
+        this.social = social;
+    }
 
     // ===== 연관관계 =====
 
@@ -67,5 +78,6 @@ public class UserInfo {
     @OneToMany(mappedBy = "userInfo", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<ProductLike> likes = new HashSet<>();
+
 
 }

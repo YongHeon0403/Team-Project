@@ -46,6 +46,7 @@ public class JWTCheckFilter extends OncePerRequestFilter {
         if (path.startsWith("/api/auth/")) return true;
         // if (path.startsWith("/api/user/")) return true; // ★ 수정: 전체 user가 아니라 refresh만 스킵
         if (path.startsWith("/api/user/refresh")) return true; // ★ 추가: refresh만 명시적으로 스킵
+        if (path.startsWith("/api/user/kakao")) return true; // ✅ 카카오 교환 API는 공개로 스킵
 
         // 2) 파일 뷰(게시판 첨부 이미지)는 공개로 통과
         if ("GET".equalsIgnoreCase(method) && path.startsWith("/api/board/files/view/")) {
@@ -125,6 +126,7 @@ public class JWTCheckFilter extends OncePerRequestFilter {
             String phoneNumber = String.valueOf(claims.get("phoneNumber"));
             String region = String.valueOf(claims.get("region"));
             boolean isActive = Boolean.parseBoolean(String.valueOf(claims.get("isActive")));
+            boolean social = Boolean.parseBoolean(String.valueOf(claims.get("social")));
 
             // unchecked 캐스팅 없이 안전 변환
             List<UserRole> roleNames = List.of();
@@ -137,7 +139,7 @@ public class JWTCheckFilter extends OncePerRequestFilter {
             }
 
             UserInfoDTO userInfoDTO = new UserInfoDTO(
-                    userId, email, password, nickname, phoneNumber, region, roleNames, isActive
+                    userId, email, password, nickname, phoneNumber, region, roleNames, isActive, social
             );
 
             log.info("Authenticated user: {}", userInfoDTO);
