@@ -5,6 +5,8 @@ const Loading = <div>Loading...</div>;
 
 const Login = lazy(() => import("../pages/user/LoginPage"));
 const Logout = lazy(() => import("../pages/user/LogoutPage"));
+const KakaoRedirect = lazy(() => import("../pages/user/KaKaoredirectPage"));
+const Modify = lazy(() => import("../pages/user/ModifyPage"));
 
 const UserRouter = () => [
   {
@@ -20,6 +22,22 @@ const UserRouter = () => [
     element: (
       <Suspense fallback={Loading}>
         <Logout />
+      </Suspense>
+    ),
+  },
+  {
+    path: "kakao",
+    element: (
+      <Suspense fallback={Loading}>
+        <KakaoRedirect />
+      </Suspense>
+    ),
+  },
+  {
+    path: "modify",
+    element: (
+      <Suspense fallback={Loading}>
+        <Modify />
       </Suspense>
     ),
   },

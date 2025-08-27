@@ -4,6 +4,7 @@ import { loginPostAsync } from "../../slices/LoginSlice";
 import { useNavigate } from "react-router-dom";
 import useCustomLogin from "../../hooks/useCustomLogin";
 import { setCookie } from "../../util/CookieUtil";
+import KakaoLoginComponent from "./KakaoLoginComponent.jsx";
 
 const initState = {
   email: "",
@@ -106,6 +107,7 @@ const LoginComponent = () => {
       >
         {isLoading ? "로그인 중..." : "로그인"}
       </button>
+      <KakaoLoginComponent />
     </div>
   );
 };
