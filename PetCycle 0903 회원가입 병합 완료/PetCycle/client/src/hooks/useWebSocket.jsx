@@ -1,4 +1,4 @@
-// src/hooks/useWebSocket.js
+// client/src/hooks/useWebSocket.jsx
 import { useState, useEffect, useCallback } from "react";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
@@ -11,6 +11,7 @@ const useWebSocket = (username, opts = {}) => {
   const [connected, setConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(new Set());
   const [dmThreads, setDmThreads] = useState({});
+  const [hasNewChat, setHasNewChat] = useState(false); // 상단 배지 상태
 
   useEffect(() => {
     if (username) connect();
@@ -56,6 +57,22 @@ const useWebSocket = (username, opts = {}) => {
           }));
         });
 
+        // 내 알림
+        client.subscribe(`/topic/notice.${username}`, (msg) => {
+          try {
+            const notice = JSON.parse(msg.body || "{}");
+            if (notice.type === "NEW_MESSAGE") {
+              setHasNewChat(true); // 배지 ON
+              if (typeof opts.onNotice === "function") {
+                opts.onNotice(notice); // 선택: 외부 콜백
+              }
+              console.log("새 메세지 알림:", notice); // 객체 로깅
+            }
+          } catch (e) {
+            console.error("알림 파싱 실패:", e);
+          }
+        });
+
         // JOIN
         client.publish({
           destination: "/app/chat.addUser",
@@ -68,7 +85,7 @@ const useWebSocket = (username, opts = {}) => {
 
     client.activate();
     setStompClient(client);
-  }, [username]);
+  }, [username, opts.onNotice]);
 
   const disconnect = useCallback(() => {
     if (!stompClient) return;
@@ -77,7 +94,18 @@ const useWebSocket = (username, opts = {}) => {
     setConnected(false);
     setOnlineUsers(new Set());
     setDmThreads({});
+    setHasNewChat(false); // 배지 상태 초기화
   }, [stompClient]);
+
+  // ✅ [ADD] REST로 받은 과거 내역을 특정 상대(peer) 스레드로 심는 유틸
+  // - 웹소켓은 실시간만 담당하므로, 과거 대화는 방 입장 시 한 번 주입
+  const seedThread = useCallback((peer, messages) => {
+    if (!peer) return;
+    setDmThreads((prev) => ({
+      ...prev,
+      [peer]: Array.isArray(messages) ? messages : [],
+    }));
+  }, []);
 
   // ✅ DM 보내기: 닉네임 필드(표시용)도 같이 전달
   const sendDirectMessage = useCallback(
@@ -109,12 +137,18 @@ const useWebSocket = (username, opts = {}) => {
     [stompClient, connected, username, opts.myNickname, opts.peerNickname]
   );
 
+  // 상단 배지 끄기 (채팅 탭/채팅방 진입 시 호출)
+  const clearChatBadge = useCallback(() => setHasNewChat(false), []);
+
   return {
     connected,
     onlineUsers: Array.from(onlineUsers),
     disconnect,
     dmThreads,
     sendDirectMessage,
+    seedThread, // ✅ [ADD] 외부에서 과거 내역 주입
+    hasNewChat,
+    clearChatBadge,
   };
 };
 

@@ -4,6 +4,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import ChatRoom from "./ChatRoom";
 import { getCookie } from "../../util/CookieUtil";
+import {
+  getNicknameByUserId,
+  getOrCreateRoom,
+  getRoomMessages,
+} from "../../api/chatApi";
 
 /** JWT에서 userId, nickname 보완 추출 */
 function parseJwt(token) {
@@ -17,14 +22,10 @@ function parseJwt(token) {
 function getAuthFromCookie() {
   const raw = getCookie("user");
   if (!raw) return { userId: "", nickname: "" };
-
   let obj = raw;
   try {
     if (typeof raw === "string") obj = JSON.parse(raw);
-  } catch {
-    /* no-op */
-  }
-
+  } catch {}
   const payload = parseJwt(obj?.accessToken);
   const userId =
     obj?.userId ??
@@ -33,43 +34,24 @@ function getAuthFromCookie() {
     payload?.uid ??
     payload?.sub ??
     "";
-  const nickname = obj?.nickname ?? payload?.nickname ?? ""; // 프로젝트 JWT에 nickname 있으면 잡힘
-
+  const nickname = obj?.nickname ?? payload?.nickname ?? "";
   return { userId: String(userId || ""), nickname: String(nickname || "") };
 }
 
-/** [임시 스텁] userId -> nickname 조회 (백엔드 API 붙이면 교체) */
-async function fetchNicknameByUserId(userId) {
-  // TODO: 팀원 API 붙이면 아래를 교체하세요. 예) GET /api/users/{id}
-  // const { data } = await jwtAxios.get(`/api/users/${userId}`);
-  // return data.nickname;
-  return `user#${userId}`; // 임시
-}
-
-const ChatComponent = () => {
+export default function ChatComponent() {
   const nav = useNavigate();
+  const location = useLocation();
 
-  // 쿼리에서 상대 userId 받음: /chat?peer={userId}
-  const { search } = useLocation();
-  const peer = useMemo(() => {
-    const usp = new URLSearchParams(search);
-    return usp.get("peer") || "";
-  }, [search]);
+  const { search } = location;
+  const peer = useMemo(
+    () => new URLSearchParams(search).get("peer") || "",
+    [search]
+  );
+  const peerNickFromQS = useMemo(
+    () => new URLSearchParams(search).get("peerNick") || "",
+    [search]
+  );
 
-  // from에 들어있는 "원래 보던 내부 경로"를
-  // 필요할 때만 계산하고, 안전하게 파싱/디코딩해서, "나가기"에서
-  // nav(from, { replace: true })로 정확히 복귀하려는 목적
-  const from = useMemo(() => {
-    const usp = new URLSearchParams(search);
-    const v = usp.get("from") || "";
-    try {
-      return decodeURIComponent(v);
-    } catch {
-      return v;
-    }
-  }, [search]);
-
-  // 내 userId/nickname: Redux -> 쿠키 보완
   const reduxUserId = useSelector(
     (s) => s.login?.user?.userId ?? s.loginSlice?.user?.userId ?? null
   );
@@ -80,61 +62,79 @@ const ChatComponent = () => {
   const meId = String(reduxUserId ?? cookieAuth.userId ?? "");
   const meNick = String(reduxNickname ?? cookieAuth.nickname ?? "");
 
-  // 상대 닉네임 상태
-  const [peerNickname, setPeerNickname] = useState("");
-
-  // 자동 입장
-  const [username, setUsername] = useState("");
-  const [isJoined, setIsJoined] = useState(false);
+  const [peerNickname, setPeerNickname] = useState(peerNickFromQS || "");
+  const [roomId, setRoomId] = useState(null);
+  const [initialMessages, setInitialMessages] = useState([]);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let alive = true;
     (async () => {
-      if (!peer) return;
-      if (!meId) return;
+      setReady(false);
+      if (!peer || !meId) return;
 
-      // 본인과 채팅 방지
       if (String(meId) === String(peer)) {
         alert("본인과는 채팅할 수 없어요.");
         nav(-1);
         return;
       }
 
-      // 상대 닉네임 조회
-      try {
-        const nick = await fetchNicknameByUserId(peer);
-        if (alive) setPeerNickname(nick || "");
-      } catch {
-        if (alive) setPeerNickname("");
+      if (!peerNickFromQS) {
+        try {
+          const nick = await getNicknameByUserId(peer);
+          if (alive) setPeerNickname(nick || "");
+        } catch {
+          if (alive) setPeerNickname("");
+        }
       }
 
-      setUsername(meId); // 실제 라우팅/구독은 userId로
-      setIsJoined(true); // 바로 입장
+      try {
+        const room = await getOrCreateRoom(Number(peer));
+        if (!alive) return;
+        const rid = room?.roomId ?? null;
+        setRoomId(rid);
+
+        let history = [];
+        if (rid) {
+          const list = await getRoomMessages(rid); // 서버: 최신순
+          if (!alive) return;
+          const asc = Array.isArray(list) ? [...list].reverse() : [];
+          history = asc.map((m) => ({
+            type: "CHAT",
+            sender: String(m.senderId),
+            receiver: String(m.roomId),
+            content: m.content,
+            timestamp: m.createdAt,
+            senderNickname: m.senderNickname || "",
+          }));
+        }
+        if (alive) setInitialMessages(history);
+      } catch {
+        alert("채팅방 생성/조회에 실패했습니다.");
+        return;
+      }
+
+      if (alive) setReady(true);
     })();
     return () => {
       alive = false;
     };
-  }, [peer, meId, nav]);
+  }, [peer, meId, nav, peerNickFromQS]);
 
-  // 나가기 → 메인
-  // const handleLeave = () => {
-  //   setIsJoined(false);
-  //   setUsername("");
-  //   nav("/", { replace: true });
-  // };
-
-  // 나가기 → 진입 경로(`from`)가 있으면 거기로, 없으면 메인
+  // ✅ 나가기 동작: from → 히스토리 → 기본(/chat/list)
   const handleLeave = () => {
-    setIsJoined(false);
-    setUsername("");
-    if (from && from.startsWith("/")) {
+    const from = location.state?.from;
+    if (from) {
       nav(from, { replace: true });
-    } else {
-      nav("/", { replace: true });
+      return;
     }
+    if (window.history.length > 1) {
+      nav(-1);
+      return;
+    }
+    nav("/chat/list", { replace: true });
   };
 
-  // 가드
   if (!peer) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center text-gray-600">
@@ -150,25 +150,23 @@ const ChatComponent = () => {
       </div>
     );
   }
-
-  // 정상
-  if (isJoined && username) {
+  if (!ready) {
     return (
-      <ChatRoom
-        username={username} // 내 userId
-        usernameNickname={meNick} // 내 닉네임(표시용, 없으면 빈 문자열)
-        peer={peer} // 상대 userId
-        peerNickname={peerNickname} // 상대 닉네임(표시용)
-        onLeave={handleLeave}
-      />
+      <div className="min-h-[50vh] flex items-center justify-center text-gray-500">
+        채팅방 준비 중…
+      </div>
     );
   }
 
   return (
-    <div className="min-h-[50vh] flex items-center justify-center text-gray-500">
-      채팅방 준비 중…
-    </div>
+    <ChatRoom
+      username={meId}
+      usernameNickname={meNick}
+      peer={peer}
+      peerNickname={peerNickname}
+      roomId={roomId}
+      initialMessages={initialMessages}
+      onLeave={handleLeave}
+    />
   );
-};
-
-export default ChatComponent;
+}

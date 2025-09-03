@@ -8,6 +8,7 @@ import ProductRouter from "./ProductRouter";
 import NoticeRouter from "./NoticeRouter";
 import PetRouter from "./PetRouter"; // ← 추가
 const ChatPage = lazy(() => import("../pages/ChatPage")); // ✅ 이 줄 추가
+const ChatListPage = lazy(() => import("../pages/chat/ChatListPage")); // ✅ [ADD]
 
 const Loading = <div>Loading...</div>;
 const Main = lazy(() => import("../pages/MainPages"));
@@ -22,6 +23,17 @@ const root = createBrowserRouter([
     ),
   },
 
+  // ✅ [ADD] 내 채팅 목록 페이지
+  {
+    path: "/chat/list",
+    element: (
+      <Suspense fallback={Loading}>
+        <ChatListPage />
+      </Suspense>
+    ),
+  },
+
+  // DM 화면 (peer 쿼리로 진입)
   {
     path: "/chat",
     element: (
