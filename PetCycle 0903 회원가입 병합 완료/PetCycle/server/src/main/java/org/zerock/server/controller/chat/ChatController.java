@@ -9,7 +9,11 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
-import org.zerock.server.dto.ChatMessageDTO;
+import org.zerock.server.domain.chat.ChatMessage;
+import org.zerock.server.domain.chat.ChatRoom;
+import org.zerock.server.dto.chat.ChatMessageDTO;
+import org.zerock.server.dto.chat.ChatNotice;
+import org.zerock.server.service.chat.ChatService;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,6 +28,8 @@ public class ChatController {
     private static final Set<String> onlineUsers = ConcurrentHashMap.newKeySet();
 
     private final SimpMessagingTemplate messagingTemplate;
+
+    private final ChatService chatService;
 
     // 클라이언트가 /app/chat.addUser 로 JOIN 메시지를 보낼 때 처리(사용자가 채팅방 입장시 처리)
     @MessageMapping("/chat.addUser")
@@ -91,19 +97,35 @@ public class ChatController {
         String from = chatMessageDTO.getSender();
 
         // 수신자가 없으면 무시
-        if (to == null || to.isBlank()){
+        if (to == null || to.isBlank()) {
             return;
         }
 
-        // 수신자의 개인 구독 주소로만 보내기
-        messagingTemplate.convertAndSend("/topic/inbox." + to, chatMessageDTO);
+        // ★ 여기서 DB 저장 (현재 정책: 두 유저는 방 1개)
+        try {
+            Long meId = Long.valueOf(from);
+            Long peerId = Long.valueOf(to);
 
-        // (선택) 보낸 사람도 자기 대화창에서 즉시 보이도록 echo (UX용)
-        if (from != null && !from.isBlank()){
+            // 방 확보 + 메세지 저장
+            ChatRoom room = chatService.getOrCreateRoom(meId, peerId);
+            ChatMessage saved = chatService.sendMessage(room.getId(), meId, chatMessageDTO.getContent());
+
+            // 저장 성공 후에만 전송
+            messagingTemplate.convertAndSend("/topic/inbox." + to, chatMessageDTO);
             messagingTemplate.convertAndSend("/topic/inbox." + from, chatMessageDTO);
+
+            // 알림 전송
+            ChatNotice notice = new ChatNotice(
+                    "NEW_MESSAGE",
+                    room.getId(),
+                    saved.getId(),
+                    meId
+            );
+            messagingTemplate.convertAndSend("/topic/notice." + to, notice);
+
+        } catch (Exception e) {
+            log.warning("DM persist failed: " + e.getMessage());
         }
     }
-
-
 
 }

@@ -1,4 +1,4 @@
-package org.zerock.server.dto;
+package org.zerock.server.dto.chat;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,6 +10,8 @@ import java.time.format.DateTimeFormatter;
 @Getter
 @Setter
 @AllArgsConstructor
+
+// 웹소켓 DTO
 public class ChatMessageDTO {
     private MessageType type;
     private String content;
